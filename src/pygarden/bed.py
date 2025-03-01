@@ -10,7 +10,7 @@ from matplotlib.patches import Rectangle
 from dataclasses import dataclass, field
 import copy
 from pygarden._color_data import COLORDICT
-
+import numpy as np
 
 @dataclass
 class Bed:
@@ -30,6 +30,7 @@ class Bed:
     children: list = field(default_factory=list)
     parent: Bed = None
     label: str = None
+    # _angle: float = 0
 
     def __post_init__(self):
         self._width = self.width
@@ -57,6 +58,8 @@ class Bed:
             width=self.width,
             height=self.height,
             facecolor=self.color,
+            # angle=self._angle,
+            # rotation_point="center",
             edgecolor=COLORDICT["edgecolor"],
         )
         return rect_self
@@ -191,18 +194,34 @@ class Bed:
 
         return self
 
-    def pivot(self) -> Bed:
-        """Swap the x/y dimensions"""
-        old_x, old_y, old_w, old_h = self.x, self.y, self._width, self._height
+    # @property
+    # def perceived_x(self) -> float:
+    #     """Given some angle what is the perceived X"""
 
+    #     rad_angle = np.deg2rad(self._angle)
+    #     new_x = self.absolute_x*np.cos(rad_angle) + self.absolute_y*np.sin(rad_angle)
+    #     return new_x
+    
+    # @property
+    # def perceived_y(self) -> float:
+    #     """Given some angle what is the perceived X"""
+
+    #     rad_angle = np.deg2rad(self._angle)
+    #     new_y = self.absolute_x*np.sin(rad_angle) + self.absolute_y*np.cos(rad_angle)
+    #     return new_y
+
+
+    def pivot(self, angle: float = 90) -> Bed:
+        """Rotate by some amount"""
         self.x = old_y
         self.y = old_x
         # Do the hidden dimensions to keep the None effects of self.width and
         # self.height the same
         self._width = old_h
         self._height = old_w
+        # self._angle += angle
         for child in self.children:
             if child is not None:
-                child.pivot()
+                child.pivot(angle)
 
         return self
